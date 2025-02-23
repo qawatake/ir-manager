@@ -46,6 +46,16 @@ function App() {
                   {remotes.map((remote) => (
                     <li key={remote.id}>
                       <Link to={`/remote/${remote.id}`}>{remote.name}</Link>
+                      <button
+                        onClick={() => {
+                          api.deleteRemote(remote.id).then(async () => {
+                            const data = await api.getRemotes();
+                            setRemotes(data);
+                          });
+                        }}
+                      >
+                        Delete
+                      </button>
                     </li>
                   ))}
                 </ul>

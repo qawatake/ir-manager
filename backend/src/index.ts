@@ -134,6 +134,16 @@ app.delete("/buttons/:id", (req, res) => {
   });
 });
 
+app.delete("/remotes/:id", (req, res) => {
+  db.run("DELETE FROM remotes WHERE id = ?", [req.params.id], (err) => {
+    if (err) {
+      res.status(500).send(err.message);
+    } else {
+      res.send("Remote deleted");
+    }
+  });
+});
+
 app.listen(port, () => {
   console.log(`IR Manager Backend listening on port ${port}`);
 });
