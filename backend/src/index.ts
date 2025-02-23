@@ -211,14 +211,14 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
             );
             res.json({ id: buttonId });
           } else {
-            res.status(400).send("Failed to receive IR data. Please retry.");
+            res.status(400).json({ message: "赤外線データの受信に失敗しました。もう一度お試しください。" });
           }
         }
       }
     );
   } catch (error) {
     console.error(error);
-    res.status(500).send("Failed to register IR data");
+    res.status(500).json({ message: "赤外線データの登録に失敗しました。" });
   }
 });
 
