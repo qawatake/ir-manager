@@ -8,8 +8,7 @@ app.use(express.json());
 const port = 3002;
 
 app.post('/register', (req, res) => {
-  const buttonId = req.body.buttonId;
-  console.log(`Received register request for buttonId: ${buttonId}`);
+  console.log(`Received register request`);
 
   // Mock IR data
   const irData1 = Math.random().toString(36).slice(-8);

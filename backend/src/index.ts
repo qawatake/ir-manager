@@ -186,36 +186,26 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
   const remoteId = req.params.remote_id;
 
   try {
-    db.run(
-      "INSERT INTO buttons (remote_id, name) VALUES (?, ?)",
-      [remoteId, name],
-      async function (err) {
-        if (err) {
-          res.status(500).send(err.message);
-        } else {
-          const buttonId = this.lastID;
-          const response = await axios.post(`${IR_SERVER_URL}/register`, {
-            buttonId,
-          });
-          const irData = response.data;
+    const response = await axios.post(`${IR_SERVER_URL}/register`, {});
+    const irData = response.data;
 
-          if (irData[0] === irData[1] && irData[1] === irData[2]) {
-            db.run(
-              "UPDATE buttons SET ir_data = ? WHERE id = ?",
-              [JSON.stringify(irData), buttonId],
-              (err) => {
-                if (err) {
-                  console.error(err);
-                }
-              }
-            );
-            res.json({ id: buttonId });
+    if (irData[0] === irData[1] && irData[1] === irData[2]) {
+      db.run(
+        "INSERT INTO buttons (remote_id, name, ir_data) VALUES (?, ?, ?)",
+        [remoteId, name, JSON.stringify(irData)],
+        function (err) {
+          if (err) {
+            console.error(err);
+            res.status(500).json({ message: "リモコンの登録に失敗しました。", error: err.message });
           } else {
-            res.status(400).json({ message: "赤外線データの受信に失敗しました。もう一度お試しください。" });
+            const buttonId = this.lastID;
+            res.json({ id: buttonId });
           }
         }
-      }
-    );
+      );
+    } else {
+      res.status(400).json({ message: "赤外線データの受信に失敗しました。もう一度お試しください。" });
+    }
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ message: "赤外線データの登録に失敗しました。", error: error.message });
