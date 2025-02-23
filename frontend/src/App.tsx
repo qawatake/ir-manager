@@ -44,9 +44,10 @@ function App() {
                 </button>
                 <ul>
                   {remotes.map((remote) => (
-                    <li key={remote.id}>
+                    <li key={remote.id} className="flex items-center justify-between py-2 px-4 border-b m-2">
                       <Link to={`/remote/${remote.id}`}>{remote.name}</Link>
                       <button
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                         onClick={() => {
                           api.deleteRemote(remote.id).then(async () => {
                             const data = await api.getRemotes();

@@ -110,9 +110,10 @@ function RemoteDetail() {
   return (
     <div>
       <h2>Remote: {remote.name}</h2>
-      <Link to="/">Back to Remote List</Link>
+      <Link to="/" className="mb-4 block">Back to Remote List</Link>
       <h3>Buttons</h3>
       <button
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         onClick={() => {
           const name = prompt("Enter button name:");
           if (name && id) {
@@ -139,13 +140,14 @@ function RemoteDetail() {
       </button>
       <ul>
         {buttons.map((button) => (
-          <li key={button.id}>
-            {button.name}
+          <li key={button.id} className="flex items-center justify-between py-2 px-4 border-b m-2">
+            <span>{button.name}</span>
             {button.status === "pending" && <span>⏳</span>}
             {button.status === "warning" && <span>⚠️</span>}
             {button.status === "success" && <span>✅</span>}
             {button.status === "error" && <span>❌</span>}
             <button
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
               onClick={() => {
                 api.deleteButton(button.id).then(async () => {
                   const buttonsData = await api.getButtons(parseInt(id || "0"));
