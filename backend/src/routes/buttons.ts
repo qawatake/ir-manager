@@ -1,6 +1,7 @@
 import express from 'express';
 import db from '../db';
-import { startListening, getIrData as getIrDataFromService, clearIrData, irData } from '../ir-service.js';
+// @ts-ignore
+import { default as axios } from 'axios';
 
 const router = express.Router();
 
@@ -10,6 +11,8 @@ interface Button {
   name: string;
   ir_data: string | null;
 }
+
+const irServiceUrl = 'http://localhost:3001/irservice'; // Assuming the backend and IR service run on the same machine
 
 router.get('/remotes/:remote_id/buttons', (req, res) => {
   const remoteId = req.params.remote_id;
@@ -21,8 +24,6 @@ router.get('/remotes/:remote_id/buttons', (req, res) => {
         let status = 'pending';
         if (button.ir_data) {
           status = 'success';
-        } else if (irData[button.id] && irData[button.id].length > 0) {
-          status = 'warning';
         }
         return { ...button, status };
       });
@@ -78,22 +79,27 @@ router.delete('/buttons/:id', (req, res) => {
 });
 
 // Endpoint to start listening for IR data
-router.post('/listenir/:button_id', (req, res) => {
+router.post('/listenir/:button_id', async (req, res) => {
   const buttonId = req.params.button_id;
-  startListening(buttonId);
-  console.log(`Start listening IR data for button ${buttonId}`);
-  res.send('Start listening IR data');
+  try {
+    await axios.post(`${irServiceUrl}/listen/${buttonId}`);
+    console.log(`Start listening IR data for button ${buttonId}`);
+    res.send('Start listening IR data');
+  } catch (error) {
+    console.error('Error starting IR listening:', error);
+    res.status(500).send('Failed to start IR listening');
+  }
 });
 
 // Endpoint to check for available IR data
-router.get('/irdata/:button_id', (req, res) => {
+router.get('/irdata/:button_id', async (req, res) => {
   const buttonId = req.params.button_id;
-  const irDataFromService = getIrDataFromService(buttonId);
-
-  if (irDataFromService) {
-    res.json({ data: irDataFromService });
-  } else {
-    res.status(404).send('IR data not found');
+  try {
+    const response = await axios.get(`${irServiceUrl}/data/${buttonId}`);
+    res.json({ data: response.data });
+  } catch (error) {
+    console.error('Error getting IR data:', error);
+    res.status(500).send('Failed to get IR data');
   }
 });
 

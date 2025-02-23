@@ -21,6 +21,7 @@ function RemoteDetail() {
   const [buttons, setButtons] = useState<Button[]>([]);
   const [irDataPackets, setIrDataPackets] = useState<string[]>([]);
   const [currentButtonName, setCurrentButtonName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const startListeningForIrData = async (buttonId: number) => {
     setIrDataPackets([]);
@@ -40,13 +41,23 @@ function RemoteDetail() {
       };
 
       let count = 0;
+      let noDataCount = 0;
       while (irDataPackets.length < 3 && count < 10) {
         const data = await receiveIr();
         if (data) {
           setIrDataPackets((prev) => [...prev, data]);
+          noDataCount = 0;
+        } else {
+          noDataCount++;
         }
         count++;
         await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
+
+        if (noDataCount >= 5) {
+          console.log("No IR data received for 5 seconds. Aborting.");
+          alert("No IR data received. Please try again.");
+          break;
+        }
       }
 
       if (irDataPackets.length === 3) {
@@ -121,7 +132,9 @@ function RemoteDetail() {
         {buttons.map((button) => (
           <li key={button.id}>
             {button.name}
+            {button.status === "pending" && <span>⏳</span>}
             {button.status === "warning" && <span>⚠️</span>}
+            {button.status === "success" && <span>✅</span>}
             {button.status === "error" && <span>❌</span>}
             <button
               onClick={() => {

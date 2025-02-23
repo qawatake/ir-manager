@@ -1,12 +1,7 @@
 import express from "express";
 import cors from "cors";
 import sqlite3 from "sqlite3";
-import {
-  startListening,
-  getIrData as getIrDataFromService,
-  clearIrData,
-  irData,
-} from "./ir-service.js";
+import axios from "axios";
 
 const app = express();
 const port = 3001;
@@ -20,6 +15,26 @@ interface Button {
 
 app.use(cors());
 app.use(express.json());
+
+// Activity Log Middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    const log = {
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.originalUrl,
+      body: req.body,
+      status: res.statusCode,
+      duration: duration + "ms",
+    };
+    console.log(JSON.stringify(log));
+  });
+
+  next();
+});
 
 const db = new sqlite3.Database("./ir.db", (err) => {
   if (err) {
@@ -119,6 +134,10 @@ app.delete("/buttons/:id", (req, res) => {
   });
 });
 
+app.listen(port, () => {
+  console.log(`IR Manager Backend listening on port ${port}`);
+});
+
 // Buttons API
 app.get("/remotes/:remote_id/buttons", (req, res) => {
   const remoteId = req.params.remote_id;
@@ -162,34 +181,79 @@ app.get("/buttons/:id", (req, res) => {
   );
 });
 
-app.post("/remotes/:remote_id/buttons", (req, res) => {
+app.post("/remotes/:remote_id/buttons", async (req, res) => {
   const { name } = req.body;
-  db.run(
-    "INSERT INTO buttons (remote_id, name) VALUES (?, ?)",
-    [req.params.remote_id, name],
-    function (err) {
-      if (err) {
-        res.status(500).send(err.message);
-      } else {
-        res.json({ id: this.lastID });
+  const remoteId = req.params.remote_id;
+
+  try {
+    db.run(
+      "INSERT INTO buttons (remote_id, name) VALUES (?, ?)",
+      [remoteId, name],
+      async function (err) {
+        if (err) {
+          res.status(500).send(err.message);
+        } else {
+          const buttonId = this.lastID;
+          const response = await axios.post(`${IR_SERVER_URL}/register`, {
+            buttonId,
+          });
+          const irData = response.data;
+
+          db.run(
+            "UPDATE buttons SET ir_data = ? WHERE id = ?",
+            [JSON.stringify(irData), buttonId],
+            (err) => {
+              if (err) {
+                console.error(err);
+              }
+            }
+          );
+          res.json({ id: buttonId });
+        }
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to register IR data");
+  }
 });
 
-app.put("/buttons/:id", (req, res) => {
-  const { name, ir_data } = req.body;
-  db.run(
-    "UPDATE buttons SET name = ?, ir_data = ? WHERE id = ?",
-    [name, ir_data, req.params.id],
-    (err) => {
-      if (err) {
-        res.status(500).send(err.message);
-      } else {
-        res.send("Button updated");
-      }
+const IR_SERVER_URL = "http://localhost:3002";
+
+app.put("/buttons/:id", async (req, res) => {
+  const { name } = req.body;
+  const buttonId = req.params.id;
+
+  try {
+    const button = await new Promise<Button>((resolve, reject) => {
+      db.get("SELECT * FROM buttons WHERE id = ?", [buttonId], (err, row: Button) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+
+    if (!button) {
+      res.status(404).send("Button not found");
+      return;
     }
-  );
+
+    const irData = button.ir_data;
+
+    if (irData) {
+      await axios.post(`${IR_SERVER_URL}/transmit`, {
+        irData: irData,
+      });
+      res.send("IR data transmitted");
+    } else {
+      res.status(400).send("IR data not available");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to transmit IR data");
+  }
 });
 
 app.delete("/buttons/:id", (req, res) => {
@@ -200,39 +264,4 @@ app.delete("/buttons/:id", (req, res) => {
       res.send("Button deleted");
     }
   });
-});
-
-// Mock IR transmission service
-const sendIrDataToService = (buttonId: number, irData: string) => {
-  console.log(
-    `Sending IR data to IR transmission service for button ${buttonId}: ${irData}`
-  );
-  // In a real implementation, this would send the IR data to the service.
-};
-
-// Endpoint to send IR data to IR transmission service
-app.post("/sendir/:button_id", (req, res) => {
-  const buttonId = req.params.button_id;
-
-  db.get(
-    "SELECT ir_data FROM buttons WHERE id = ?",
-    [buttonId],
-    (err, row: Button) => {
-      if (err) {
-        res.status(500).send(err.message);
-      } else {
-        if (row && row.ir_data) {
-          const irData = row.ir_data;
-          sendIrDataToService(parseInt(buttonId), irData);
-          res.send("IR data sent to IR transmission service");
-        } else {
-          res.status(404).send("IR data not found for this button");
-        }
-      }
-    }
-  );
-});
-
-app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
 });
