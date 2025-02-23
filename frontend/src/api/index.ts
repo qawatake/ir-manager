@@ -48,7 +48,7 @@ export const deleteButton = async (id: number) => {
 };
 
 export const sendIrData = async (buttonId: number) => {
-  await api.post(`/sendir/${buttonId}`);
+  await api.post(`/transmit/${buttonId}`);
 };
 
 export const getIrData = async (buttonId: number) => {

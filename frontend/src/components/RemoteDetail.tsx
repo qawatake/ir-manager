@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import * as api from "../api";
 
 interface Remote {
@@ -15,14 +15,12 @@ interface Button {
   status: "pending" | "warning" | "success" | "error";
 }
 
-import { Link } from "react-router-dom";
-
 function RemoteDetail() {
   const { id } = useParams<{ id: string }>();
   const [remote, setRemote] = useState<Remote | null>(null);
   const [buttons, setButtons] = useState<Button[]>([]);
   const [irDataPackets, setIrDataPackets] = useState<string[]>([]);
-  const [currentButtonName, setCurrentButtonName] = useState('');
+  const [currentButtonName, setCurrentButtonName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const startListeningForIrData = async (buttonId: number) => {
@@ -110,28 +108,37 @@ function RemoteDetail() {
   return (
     <div>
       <h2>Remote: {remote.name}</h2>
-      <Link to="/" className="mb-4 block">Back to Remote List</Link>
+      <Link to="/" className="mb-4 block">
+        Back to Remote List
+      </Link>
       <h3>Buttons</h3>
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2"
         onClick={() => {
           const name = prompt("Enter button name:");
           if (name && id) {
             setCurrentButtonName(name);
             if (name) {
-              api.createButton(parseInt(id), name).then(async (button) => {
-                const buttonsData = await api.getButtons(parseInt(id));
-                setButtons(buttonsData);
-                if (button && button.id) {
-                  startListeningForIrData(button.id);
-                }
-              }).catch((error: any) => {
-                if (error.response && error.response.data && error.response.data.message) {
-                  alert(error.response.data.message);
-                } else {
-                  alert("An unexpected error occurred.");
-                }
-              });
+              api
+                .createButton(parseInt(id), name)
+                .then(async (button) => {
+                  const buttonsData = await api.getButtons(parseInt(id));
+                  setButtons(buttonsData);
+                  if (button && button.id) {
+                    startListeningForIrData(button.id);
+                  }
+                })
+                .catch((error: any) => {
+                  if (
+                    error.response &&
+                    error.response.data &&
+                    error.response.data.message
+                  ) {
+                    alert(error.response.data.message);
+                  } else {
+                    alert("An unexpected error occurred.");
+                  }
+                });
             }
           }
         }}
@@ -140,12 +147,38 @@ function RemoteDetail() {
       </button>
       <ul>
         {buttons.map((button) => (
-          <li key={button.id} className="flex items-center justify-between py-2 px-4 border-b m-2">
-            <span>{button.name}</span>
+          <li
+            key={button.id}
+            className="flex items-center justify-between py-2 px-4 border-b m-2"
+          >
+            <span className="mr-4">{button.name}</span>
             {button.status === "pending" && <span>⏳</span>}
             {button.status === "warning" && <span>⚠️</span>}
             {button.status === "success" && <span>✅</span>}
             {button.status === "error" && <span>❌</span>}
+            <button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
+              onClick={() => {
+                api
+                  .sendIrData(button.id)
+                  .then(() => {
+                    alert("IR data sent!");
+                  })
+                  .catch((error: any) => {
+                    if (
+                      error.response &&
+                      error.response.data &&
+                      error.response.data.message
+                    ) {
+                      alert(error.response.data.message);
+                    } else {
+                      alert("An unexpected error occurred.");
+                    }
+                  });
+              }}
+            >
+              Send
+            </button>
             <button
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
               onClick={() => {
