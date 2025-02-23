@@ -11,9 +11,12 @@ app.post('/register', async (req, res) => {
   console.log(`Received register request`);
 
   // Mock IR data
-  const irData1 = Math.random().toString(36).slice(-8);
-  const irData2 = Math.random().toString(36).slice(-8);
-  const irData3 = Math.random().toString(36).slice(-8);
+  const buffer1 = Buffer.from(Math.random().toString(36).slice(-8));
+  const irData1 = buffer1.toString('base64');
+  const buffer2 = Buffer.from(Math.random().toString(36).slice(-8));
+  const irData2 = buffer2.toString('base64');
+  const buffer3 = Buffer.from(Math.random().toString(36).slice(-8));
+  const irData3 = buffer3.toString('base64');
 
   const allSame = Math.random() < 0.5;
 
