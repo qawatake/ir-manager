@@ -15,6 +15,8 @@ interface Button {
   status: "pending" | "warning" | "success" | "error";
 }
 
+import { Link } from "react-router-dom";
+
 function RemoteDetail() {
   const { id } = useParams<{ id: string }>();
   const [remote, setRemote] = useState<Remote | null>(null);
@@ -108,6 +110,7 @@ function RemoteDetail() {
   return (
     <div>
       <h2>Remote: {remote.name}</h2>
+      <Link to="/">Back to Remote List</Link>
       <h3>Buttons</h3>
       <button
         onClick={() => {
