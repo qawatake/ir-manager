@@ -55,3 +55,7 @@ export const getIrData = async (buttonId: number) => {
   const response = await api.get(`/irdata/${buttonId}`);
   return response.data;
 };
+
+export const listenIr = async (buttonId: number) => {
+  await api.post(`/listenir/${buttonId}`);
+};
