@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import * as api from "../api";
 
@@ -120,6 +120,12 @@ function RemoteDetail() {
                 setButtons(buttonsData);
                 if (button && button.id) {
                   startListeningForIrData(button.id);
+                }
+              }).catch((error: any) => {
+                if (error.response && error.response.data && error.response.data.message) {
+                  alert(error.response.data.message);
+                } else {
+                  alert("An unexpected error occurred.");
                 }
               });
             }

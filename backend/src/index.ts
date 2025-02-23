@@ -216,9 +216,9 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
         }
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    res.status(500).json({ message: "赤外線データの登録に失敗しました。" });
+    res.status(500).json({ message: "赤外線データの登録に失敗しました。", error: error.message });
   }
 });
 
