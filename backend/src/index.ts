@@ -199,16 +199,20 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
           });
           const irData = response.data;
 
-          db.run(
-            "UPDATE buttons SET ir_data = ? WHERE id = ?",
-            [JSON.stringify(irData), buttonId],
-            (err) => {
-              if (err) {
-                console.error(err);
+          if (irData[0] === irData[1] && irData[1] === irData[2]) {
+            db.run(
+              "UPDATE buttons SET ir_data = ? WHERE id = ?",
+              [JSON.stringify(irData), buttonId],
+              (err) => {
+                if (err) {
+                  console.error(err);
+                }
               }
-            }
-          );
-          res.json({ id: buttonId });
+            );
+            res.json({ id: buttonId });
+          } else {
+            res.status(400).send("Failed to receive IR data. Please retry.");
+          }
         }
       }
     );
