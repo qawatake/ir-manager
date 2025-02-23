@@ -134,41 +134,6 @@ app.delete("/buttons/:id", (req, res) => {
   });
 });
 
-app.post("/transmit/:id", async (req, res) => {
-  const buttonId = req.params.id;
-
-  try {
-    const button = await new Promise<Button>((resolve, reject) => {
-      db.get("SELECT * FROM buttons WHERE id = ?", [buttonId], (err, row: Button) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
-
-    if (!button) {
-      res.status(404).send("Button not found");
-      return;
-    }
-
-    const irData = button.ir_data;
-
-    if (irData) {
-      await axios.post(`${IR_SERVER_URL}/transmit`, {
-        irData: irData,
-      });
-      res.send("IR data transmitted");
-    } else {
-      res.status(400).send("IR data not available");
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Failed to transmit IR data");
-  }
-});
-
 app.delete("/remotes/:id", (req, res) => {
   db.run("DELETE FROM remotes WHERE id = ?", [req.params.id], (err) => {
     if (err) {
@@ -259,8 +224,7 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
 
 const IR_SERVER_URL = "http://localhost:3002";
 
-app.put("/buttons/:id", async (req, res) => {
-  const { name } = req.body;
+app.post("/transmit/:id", async (req, res) => {
   const buttonId = req.params.id;
 
   try {
