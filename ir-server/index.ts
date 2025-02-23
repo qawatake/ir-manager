@@ -7,7 +7,7 @@ app.use(express.json());
 
 const port = 3002;
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
   console.log(`Received register request`);
 
   // Mock IR data
@@ -22,6 +22,8 @@ app.post('/register', (req, res) => {
     allSame ? irData1 : irData2,
     allSame ? irData1 : irData3,
   ];
+
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Respond with IR data three times
   res.json(responseData);
