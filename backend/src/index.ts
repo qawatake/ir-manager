@@ -202,11 +202,14 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
     if (irData[0] === irData[1] && irData[1] === irData[2]) {
       db.run(
         "INSERT INTO buttons (remote_id, name, ir_data) VALUES (?, ?, ?)",
-        [remoteId, name, JSON.stringify(irData)],
+        [remoteId, name, irData[0]],
         function (err) {
           if (err) {
             console.error(err);
-            res.status(500).json({ message: "リモコンの登録に失敗しました。", error: err.message });
+            res.status(500).json({
+              message: "リモコンの登録に失敗しました。",
+              error: err.message,
+            });
           } else {
             const buttonId = this.lastID;
             res.json({ id: buttonId });
@@ -214,11 +217,16 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
         }
       );
     } else {
-      res.status(400).json({ message: "赤外線データの受信に失敗しました。もう一度お試しください。" });
+      res.status(400).json({
+        message: "赤外線データの受信に失敗しました。もう一度お試しください。",
+      });
     }
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({ message: "赤外線データの登録に失敗しました。", error: error.message });
+    res.status(500).json({
+      message: "赤外線データの登録に失敗しました。",
+      error: error.message,
+    });
   }
 });
 
@@ -229,13 +237,17 @@ app.post("/transmit/:id", async (req, res) => {
 
   try {
     const button = await new Promise<Button>((resolve, reject) => {
-      db.get("SELECT * FROM buttons WHERE id = ?", [buttonId], (err, row: Button) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
+      db.get(
+        "SELECT * FROM buttons WHERE id = ?",
+        [buttonId],
+        (err, row: Button) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row);
+          }
         }
-      });
+      );
     });
 
     if (!button) {
