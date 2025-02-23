@@ -43,3 +43,5 @@ export const getIrData = (buttonId: string) => {
 export const clearIrData = (buttonId: string) => {
   delete irData[buttonId];
 };
+
+export { irData };

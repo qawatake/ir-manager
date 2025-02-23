@@ -202,30 +202,6 @@ app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
 
-</file_content>
-
-Try again with a more precise SEARCH block.
-(If you keep running into this error, you may use the write_to_file tool as a workaround.)
-</error><environment_details>
-# VSCode Visible Files
-backend/src/index.ts
-
-# VSCode Open Tabs
-backend/tsconfig.json
-backend/package.json
-frontend/src/App.css
-.gitignore
-frontend/src/api/index.ts
-frontend/src/App.tsx
-backend/src/ir-service.ts
-frontend/src/components/RemoteDetail.tsx
-backend/src/index.ts
-
-# Current Time
-2025/2/23 午後7:37:00 (Asia/Tokyo, UTC+9:00)
-
-# Current Mode
-ACT MODE
 import express from 'express';
 import cors from 'cors';
 import sqlite3 from 'sqlite3';

@@ -21,7 +21,6 @@ function RemoteDetail() {
   const [buttons, setButtons] = useState<Button[]>([]);
   const [irDataPackets, setIrDataPackets] = useState<string[]>([]);
   const [currentButtonName, setCurrentButtonName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const startListeningForIrData = async (buttonId: number) => {
     setIrDataPackets([]);
@@ -59,7 +58,7 @@ function RemoteDetail() {
           api
             .updateButton(buttonId, currentButtonName ?? "", first)
             .then(async () => {
-              const buttonsData = await api.getButtons(parseInt(id || "0"));
+              const buttonsData = await api.getButtons(parseInt(id ?? "0"));
               setButtons(buttonsData);
               alert("Button updated with IR data");
             });
