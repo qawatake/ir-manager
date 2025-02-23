@@ -33,3 +33,6 @@ Implement an application for managing infrared (IR) remote control information.
 -   If the three IR data packets are not consistent, display an error icon.
 -   Each button should have a "Delete" button.
 -   Successful buttons should have a "Send" button.
+-   The IR transmission service should be implemented as a mock server, separate from the backend server.
+    -   The IR transmission service should receive IR registration requests and return mock IR data.
+    -   The IR transmission service should also receive IR transmission requests.

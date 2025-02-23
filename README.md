@@ -6,6 +6,7 @@ This application is designed to manage infrared (IR) remote control information.
 
 -   **Frontend:** Provides a user interface for managing remotes and buttons. It is built with React and TypeScript using Vite.
 -   **Backend:** Provides API endpoints for the frontend to manage remotes and buttons, and handles receiving IR data and sending it to an IR transmission service. It is built with Express and TypeScript.
+-   **IR Server:** Provides a mock IR transmission service. It receives IR registration requests and returns mock IR data. It also receives IR transmission requests. It is built with Express and TypeScript.
 
 ## Directory Structure
 
@@ -16,6 +17,10 @@ ir-manager/
 │   │   ├── index.ts          # Main entry point for the backend application
 │   │   └── ir-service.ts     # Mock IR transmission service
 │   ├── package.json          # Backend dependencies and scripts
+│   └── tsconfig.json         # TypeScript configuration
+├── ir-server/
+│   ├── index.ts              # IR Server source code
+│   ├── package.json          # IR Server dependencies and scripts
 │   └── tsconfig.json         # TypeScript configuration
 ├── frontend/
 │   ├── src/                  # Frontend source code
