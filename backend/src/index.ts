@@ -208,7 +208,7 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
       // Fetch ir_data created after the request time
       const irDataRows: { data: string; created_at: string }[] = await new Promise((resolve, reject) => {
         db.all<{ data: string; created_at: string }>(
-          "SELECT data, created_at FROM ir_data WHERE created_at >= ?",
+          "SELECT data, created_at FROM ir_data WHERE created_at >= strftime('%Y-%m-%d %H:%M:%S', ?)",
           [requestTime.toISOString()],
           (err, rows) => {
             if (err) {

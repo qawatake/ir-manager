@@ -7,6 +7,22 @@ const db = new sqlite3.Database('./ir.db', (err) => {
   console.log('Connected to the ir.db database.');
 });
 
+const sqlLogEnabled = process.env.SQL_LOG === '1';
+
+if (sqlLogEnabled) {
+  const originalRun = db.run.bind(db);
+  db.run = function (sql: string, ...params: any[]) {
+    console.log('SQL Query:', sql, params);
+    return originalRun(sql, ...params);
+  };
+
+  const originalAll = db.all.bind(db);
+  db.all = function (sql: string, ...params: any[]) {
+    console.log('SQL Query:', sql, params);
+    return originalAll(sql, ...params);
+  };
+}
+
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS remotes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
