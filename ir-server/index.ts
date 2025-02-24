@@ -33,7 +33,7 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/transmit', (req, res) => {
-  const irData = req.body.irData;
+  const irData = req.body.data;
   console.log(`Received transmit request with irData: ${irData}`);
   res.send('OK');
 });
