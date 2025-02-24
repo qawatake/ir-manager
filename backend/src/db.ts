@@ -20,6 +20,14 @@ db.serialize(() => {
     ir_data TEXT,
     FOREIGN KEY (remote_id) REFERENCES remotes(id)
   )`);
+
+  db.run(`DROP TABLE IF EXISTS ir_data`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS ir_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    data TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
 });
 
 export default db;

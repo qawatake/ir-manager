@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import sqlite3 from "sqlite3";
 import axios from "axios";
+import db from "./db.js";
 
 const app = express();
 const port = 3001;
@@ -34,28 +35,6 @@ app.use((req, res, next) => {
   });
 
   next();
-});
-
-const db = new sqlite3.Database("./ir.db", (err) => {
-  if (err) {
-    console.error(err.message);
-  }
-  console.log("Connected to the ir.db database.");
-});
-
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS remotes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS buttons (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    remote_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    ir_data TEXT,
-    FOREIGN KEY (remote_id) REFERENCES remotes(id)
-  )`);
 });
 
 app.get("/", (req, res) => {
@@ -134,6 +113,33 @@ app.delete("/buttons/:id", (req, res) => {
   });
 });
 
+app.post("/irdata", (req, res) => {
+  const { data } = req.body;
+
+  if (!data) {
+    res.status(400).send("Data is required");
+    return;
+  }
+
+  try {
+    db.run(
+      "INSERT INTO ir_data (data) VALUES (?)",
+      [data],
+      function (err) {
+        if (err) {
+          console.error(err);
+          res.status(500).send(err.message);
+        } else {
+          res.json({ id: this.lastID });
+        }
+      }
+    );
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to store data");
+  }
+});
+
 app.delete("/remotes/:id", (req, res) => {
   db.run("DELETE FROM remotes WHERE id = ?", [req.params.id], (err) => {
     if (err) {
@@ -194,40 +200,79 @@ app.get("/buttons/:id", (req, res) => {
 app.post("/remotes/:remote_id/buttons", async (req, res) => {
   const { name } = req.body;
   const remoteId = req.params.remote_id;
+  const requestTime = new Date();
 
-  try {
-    const response = await axios.post(`${IR_SERVER_URL}/register`, {});
-    const irData = response.data;
-
-    if (irData[0] === irData[1] && irData[1] === irData[2]) {
-      db.run(
-        "INSERT INTO buttons (remote_id, name, ir_data) VALUES (?, ?, ?)",
-        [remoteId, name, irData[0]],
-        function (err) {
-          if (err) {
-            console.error(err);
-            res.status(500).json({
-              message: "リモコンの登録に失敗しました。",
-              error: err.message,
-            });
-          } else {
-            const buttonId = this.lastID;
-            res.json({ id: buttonId });
+  let attempt = 0;
+  while (attempt < 60) {
+    try {
+      // Fetch ir_data created after the request time
+      const irDataRows: { data: string; created_at: string }[] = await new Promise((resolve, reject) => {
+        db.all<{ data: string; created_at: string }>(
+          "SELECT data, created_at FROM ir_data WHERE created_at >= ?",
+          [requestTime.toISOString()],
+          (err, rows) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(rows);
+            }
           }
-        }
-      );
-    } else {
-      res.status(400).json({
-        message: "赤外線データの受信に失敗しました。もう一度お試しください。",
+        );
       });
+
+      // Group ir_data by data value
+      const dataCounts: { [data: string]: number } = {};
+      irDataRows.forEach((row) => {
+        dataCounts[row.data] = (dataCounts[row.data] || 0) + 1;
+      });
+
+      // Find data with at least 3 occurrences
+      let matchingData: string | null = null;
+      for (const data in dataCounts) {
+        if (dataCounts[data] >= 3) {
+          matchingData = data;
+          break;
+        }
+      }
+
+      if (matchingData) {
+        // Create button record
+        db.run(
+          "INSERT INTO buttons (remote_id, name, ir_data) VALUES (?, ?, ?)",
+          [remoteId, name, matchingData],
+          function (err) {
+            if (err) {
+              console.error(err);
+              res.status(500).json({
+                message: "Failed to create button record.",
+                error: err.message,
+              });
+            } else {
+              const buttonId = this.lastID;
+              res.json({ id: buttonId });
+            }
+          }
+        );
+        return; // Exit the loop after successful button creation
+      } else {
+        // Wait 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        attempt++;
+      }
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({
+        message: "Failed to process IR data.",
+        error: error.message,
+      });
+      return;
     }
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      message: "赤外線データの登録に失敗しました。",
-      error: error.message,
-    });
   }
+
+  // Timeout error
+  res.status(408).json({
+    message: "Timeout: Failed to receive enough IR data. Please try again.",
+  });
 });
 
 const IR_SERVER_URL = "http://localhost:3002";
@@ -259,7 +304,7 @@ app.post("/transmit/:id", async (req, res) => {
 
     if (irData) {
       await axios.post(`${IR_SERVER_URL}/transmit`, {
-        irData: irData,
+        data: irData,
       });
       res.send("IR data transmitted");
     } else {
