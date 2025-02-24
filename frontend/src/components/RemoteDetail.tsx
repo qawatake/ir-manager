@@ -94,9 +94,6 @@ function RemoteDetail() {
               onClick={() => {
                 api
                   .sendIrData(button.id)
-                  .then(() => {
-                    alert("IR data sent!");
-                  })
                   .catch((error: unknown) => {
                     if (
                       error instanceof Error &&

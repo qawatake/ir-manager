@@ -229,7 +229,7 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
       // Find data with at least 3 occurrences
       let matchingData: string | null = null;
       for (const data in dataCounts) {
-        if (dataCounts[data] >= 3) {
+        if (dataCounts[data] >= 1) {
           matchingData = data;
           break;
         }
