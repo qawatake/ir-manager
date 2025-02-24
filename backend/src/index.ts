@@ -275,7 +275,7 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
   });
 });
 
-const IR_SERVER_URL = "http://localhost:3002";
+const IR_SERVER_URL = "http://192.168.10.116";
 
 app.post("/transmit/:id", async (req, res) => {
   const buttonId = req.params.id;
@@ -303,7 +303,7 @@ app.post("/transmit/:id", async (req, res) => {
     const irData = button.ir_data;
 
     if (irData) {
-      await axios.post(`${IR_SERVER_URL}/transmit`, {
+      await axios.post(`${IR_SERVER_URL}/ir`, {
         data: irData,
       });
       res.send("IR data transmitted");
