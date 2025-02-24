@@ -19,68 +19,6 @@ function RemoteDetail() {
   const { id } = useParams<{ id: string }>();
   const [remote, setRemote] = useState<Remote | null>(null);
   const [buttons, setButtons] = useState<Button[]>([]);
-  const [irDataPackets, setIrDataPackets] = useState<string[]>([]);
-  const [currentButtonName, setCurrentButtonName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const startListeningForIrData = async (buttonId: number) => {
-    setIrDataPackets([]);
-    setIsLoading(true);
-
-    try {
-      await api.listenIr(buttonId);
-
-      const receiveIr = async () => {
-        try {
-          const response = await api.getIrData(buttonId);
-          return response.data.data;
-        } catch (error) {
-          console.error("Error receiving IR data:", error);
-          return null;
-        }
-      };
-
-      let count = 0;
-      let noDataCount = 0;
-      while (irDataPackets.length < 3 && count < 10) {
-        const data = await receiveIr();
-        if (data) {
-          setIrDataPackets((prev) => [...prev, data]);
-          noDataCount = 0;
-        } else {
-          noDataCount++;
-        }
-        count++;
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
-
-        if (noDataCount >= 5) {
-          console.log("No IR data received for 5 seconds. Aborting.");
-          alert("No IR data received. Please try again.");
-          break;
-        }
-      }
-
-      if (irDataPackets.length === 3) {
-        const first = irDataPackets[0];
-        const allEqual = irDataPackets.every((d) => d === first);
-
-        if (allEqual) {
-          alert("IR data captured successfully!");
-          api
-            .updateButton(buttonId, currentButtonName ?? "", first)
-            .then(async () => {
-              const buttonsData = await api.getButtons(parseInt(id ?? "0"));
-              setButtons(buttonsData);
-              alert("Button updated with IR data");
-            });
-        } else {
-          alert("IR data is not consistent. Please try again.");
-        }
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     const fetchRemote = async () => {
@@ -117,24 +55,19 @@ function RemoteDetail() {
         onClick={() => {
           const name = prompt("Enter button name:");
           if (name && id) {
-            setCurrentButtonName(name);
             if (name) {
               api
                 .createButton(parseInt(id), name)
-                .then(async (button) => {
+                .then(async () => {
                   const buttonsData = await api.getButtons(parseInt(id));
                   setButtons(buttonsData);
-                  if (button && button.id) {
-                    startListeningForIrData(button.id);
-                  }
                 })
-                .catch((error: any) => {
+                .catch((error: unknown) => {
                   if (
-                    error.response &&
-                    error.response.data &&
-                    error.response.data.message
+                    error instanceof Error &&
+                    error.message
                   ) {
-                    alert(error.response.data.message);
+                    alert(error.message);
                   } else {
                     alert("An unexpected error occurred.");
                   }
@@ -164,13 +97,12 @@ function RemoteDetail() {
                   .then(() => {
                     alert("IR data sent!");
                   })
-                  .catch((error: any) => {
+                  .catch((error: unknown) => {
                     if (
-                      error.response &&
-                      error.response.data &&
-                      error.response.data.message
+                      error instanceof Error &&
+                      error.message
                     ) {
-                      alert(error.response.data.message);
+                      alert(error.message);
                     } else {
                       alert("An unexpected error occurred.");
                     }
@@ -193,7 +125,6 @@ function RemoteDetail() {
           </li>
         ))}
       </ul>
-      {isLoading && <p>Loading...</p>}
     </div>
   );
 }
