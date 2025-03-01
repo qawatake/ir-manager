@@ -63,10 +63,7 @@ function RemoteDetail() {
                   setButtons(buttonsData);
                 })
                 .catch((error: unknown) => {
-                  if (
-                    error instanceof Error &&
-                    error.message
-                  ) {
+                  if (error instanceof Error && error.message) {
                     alert(error.message);
                   } else {
                     alert("An unexpected error occurred.");
@@ -85,25 +82,16 @@ function RemoteDetail() {
             className="flex items-center justify-between py-2 px-4 border-b m-2"
           >
             <span className="mr-4">{button.name}</span>
-            {button.status === "pending" && <span>⏳</span>}
-            {button.status === "warning" && <span>⚠️</span>}
-            {button.status === "success" && <span>✅</span>}
-            {button.status === "error" && <span>❌</span>}
             <button
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
               onClick={() => {
-                api
-                  .sendIrData(button.id)
-                  .catch((error: unknown) => {
-                    if (
-                      error instanceof Error &&
-                      error.message
-                    ) {
-                      alert(error.message);
-                    } else {
-                      alert("An unexpected error occurred.");
-                    }
-                  });
+                api.sendIrData(button.id).catch((error: unknown) => {
+                  if (error instanceof Error && error.message) {
+                    alert(error.message);
+                  } else {
+                    alert("An unexpected error occurred.");
+                  }
+                });
               }}
             >
               Send
