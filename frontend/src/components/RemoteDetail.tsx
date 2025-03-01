@@ -44,9 +44,10 @@ function RemoteDetail() {
   }
 
   return (
-    <div>
-      <h2>Remote: {remote.name}</h2>
-      <Link to="/" className="mb-4 block">
+    <div className="text-center my-4">
+      <h2 className="text-2xl font-semibold">Remote: {remote.name}</h2>
+      <Link to="/" className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded inline-flex items-center">
+        <svg className="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm-3.7-4.8L8.3 10 6.3 6.8 5 5.5l-5 5 5 5 1.3-1.3 2-3.2z"/></svg>
         Back to Remote List
       </Link>
       <h3>Buttons</h3>
@@ -75,13 +76,13 @@ function RemoteDetail() {
       >
         Register Button
       </button>
-      <ul>
+      <div className="max-w-md mx-auto">
         {buttons.map((button) => (
-          <li
+          <div
             key={button.id}
             className="flex items-center justify-between py-2 px-4 border-b m-2"
           >
-            <span className="mr-4">{button.name}</span>
+            <span className="mr-4 w-1/3">{button.name}</span>
             <button
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
               onClick={() => {
@@ -107,9 +108,9 @@ function RemoteDetail() {
             >
               Delete
             </button>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

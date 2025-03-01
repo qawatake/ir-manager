@@ -23,48 +23,65 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
-        <h1>IR Manager</h1>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <h2>Remotes</h2>
-               <button
-                  onClick={() => {
-                    const name = prompt("Enter remote name:") || "";
-                      api.createRemote(name).then(async () => {
-                        const data = await api.getRemotes();
-                        setRemotes(data);
-                      });
-                  }}
-                >
-                  Register Remote
-                </button>
-                <ul>
-                  {remotes.map((remote) => (
-                    <li key={remote.id} className="flex items-center justify-between py-2 px-4 border-b m-2">
-                      <Link to={`/remote/${remote.id}`}>{remote.name}</Link>
-                      <button
-                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                        onClick={() => {
-                          api.deleteRemote(remote.id).then(async () => {
-                            const data = await api.getRemotes();
-                            setRemotes(data);
-                          });
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            }
-          />
-          <Route path="/remote/:id" element={<RemoteDetail />} />
-        </Routes>
+      <div className="App mx-4 md:mx-6 lg:mx-8">
+        <div className="max-w-screen-md mx-auto py-8">
+          <div className="flex flex-col items-start space-y-2">
+            <h1 className="text-3xl font-bold text-center">IR Manager</h1>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <h2 className="text-2xl font-semibold text-center">
+                      Remotes
+                    </h2>
+                    <button
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      onClick={() => {
+                        const name = prompt("Enter remote name:") || "";
+                        api.createRemote(name).then(async () => {
+                          const data = await api.getRemotes();
+                          setRemotes(data);
+                        });
+                      }}
+                    >
+                      Register Remote
+                    </button>
+                    <div className="grid grid-cols-2 gap-4">
+                      {remotes.map((remote) => (
+                        <div
+                          key={remote.id}
+                          className=""
+                        >
+                          <div className="flex-grow overflow-hidden text-ellipsis p-1">
+                            <Link
+                              to={`/remote/${remote.id}`}
+                              className="text-center"
+                            >
+                              {remote.name}
+                            </Link>
+                          </div>
+                          <button
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                            onClick={() => {
+                              api.deleteRemote(remote.id).then(async () => {
+                                const data = await api.getRemotes();
+                                setRemotes(data);
+                              });
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                }
+              />
+              <Route path="/remote/:id" element={<RemoteDetail />} />
+            </Routes>
+          </div>
+        </div>
       </div>
     </Router>
   );
