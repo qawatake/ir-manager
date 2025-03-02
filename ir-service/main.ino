@@ -38,10 +38,6 @@ IRsend irsend(IR_SEND_PIN);
 // Array to store the last 3 received IR data values
 // 富士通エアコンのリモコンのデータは291コのデータがあったので、余裕を持たせて倍の600にしておく。
 #define MAX_RAW_DATA_SIZE 600
-#define IR_DATA_HISTORY_SIZE 3
-uint16_t irDataHistory[IR_DATA_HISTORY_SIZE][MAX_RAW_DATA_SIZE];
-uint8_t irDataLengthHistory[IR_DATA_HISTORY_SIZE];
-int historyIndex = 0;
 
 // Function to handle HTTP POST requests
 void handlePost()
@@ -169,7 +165,7 @@ void loop()
     Serial.print("Received IR Signal: 0x");
     Serial.println(results.value, HEX);
 
-    // Encode and send data from irDataHistory
+    // Encode and send data
     if (results.rawlen <= MAX_RAW_DATA_SIZE)
     {
       uint16_t dataLength = getCorrectedRawLength(&results);
@@ -215,82 +211,5 @@ void loop()
       Serial.println(resultToSourceCode(&results));
     }
 
-    irrecv.resume(); // 次のデータを受信できるようにする
-
-    // Add debugging code to print history data
-    Serial.println("irDataHistory:");
-    for (int j = 0; j < IR_DATA_HISTORY_SIZE; j++)
-    {
-      Serial.print("  History ");
-      Serial.print(j);
-      Serial.print(" (length ");
-      Serial.print(irDataLengthHistory[j]);
-      Serial.print("): ");
-      Serial.print(": ");
-      for (int i = 0; i < irDataLengthHistory[j]; i++)
-      {
-        Serial.print(irDataHistory[j][i]);
-        Serial.print(", ");
-      }
-      Serial.println();
-    }
-    Serial.print("historyIndex: ");
-    Serial.println(historyIndex);
+    delay(100);
   }
-
-  if (M5.BtnA.wasPressed())
-  {
-    Serial.println("Button A pressed, sending IR signal (Recent)!");
-    uint8_t dataLength = irDataLengthHistory[(historyIndex - 1 + IR_DATA_HISTORY_SIZE) % IR_DATA_HISTORY_SIZE];
-    uint16_t *data = irDataHistory[(historyIndex - 1 + IR_DATA_HISTORY_SIZE) % IR_DATA_HISTORY_SIZE];
-
-    Serial.print("Raw data: ");
-    for (int i = 0; i < dataLength; i++)
-    {
-      Serial.print(data[i]);
-      Serial.print(", ");
-    }
-    Serial.println();
-    irsend.sendRaw(data, dataLength, 38); // Send raw data
-    delay(500);                           // Delay after sending
-    irrecv.resume();                      // Clear receiver buffer
-  }
-
-  if (M5.BtnB.wasPressed())
-  {
-    Serial.println("Button B pressed, sending IR signal (2nd Recent)!");
-    uint8_t dataLength = irDataLengthHistory[(historyIndex - 2 + IR_DATA_HISTORY_SIZE) % IR_DATA_HISTORY_SIZE];
-    uint16_t *data = irDataHistory[(historyIndex - 2 + IR_DATA_HISTORY_SIZE) % IR_DATA_HISTORY_SIZE];
-
-    Serial.print("Raw data: ");
-    for (int i = 0; i < dataLength; i++)
-    {
-      Serial.print(data[i]);
-      Serial.print(", ");
-    }
-    Serial.println();
-    irsend.sendRaw((uint16_t *)data, dataLength, 38); // Send raw data
-    delay(500);                                       // Delay after sending
-    irrecv.resume();                                  // Clear receiver buffer
-  }
-
-  if (M5.BtnC.wasPressed())
-  {
-    Serial.println("Button C pressed, sending IR signal (3rd Recent)!");
-    uint8_t dataLength = irDataLengthHistory[(historyIndex - 3 + IR_DATA_HISTORY_SIZE) % IR_DATA_HISTORY_SIZE];
-    uint16_t *data = irDataHistory[(historyIndex - 3 + IR_DATA_HISTORY_SIZE) % IR_DATA_HISTORY_SIZE];
-
-    Serial.print("Raw data: ");
-    for (int i = 0; i < dataLength; i++)
-    {
-      Serial.print(data[i]);
-      Serial.print(", ");
-    }
-    Serial.println();
-    irsend.sendRaw((uint16_t *)data, dataLength, 38); // Send raw data
-    delay(500);                                       // Delay after sending
-    irrecv.resume();                                  // Clear receiver buffer
-  }
-
-  delay(100);
-}
