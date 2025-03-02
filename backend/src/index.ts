@@ -122,18 +122,14 @@ app.post("/irdata", (req, res) => {
   }
 
   try {
-    db.run(
-      "INSERT INTO ir_data (data) VALUES (?)",
-      [data],
-      function (err) {
-        if (err) {
-          console.error(err);
-          res.status(500).send(err.message);
-        } else {
-          res.json({ id: this.lastID });
-        }
+    db.run("INSERT INTO ir_data (data) VALUES (?)", [data], function (err) {
+      if (err) {
+        console.error(err);
+        res.status(500).send(err.message);
+      } else {
+        res.json({ id: this.lastID });
       }
-    );
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send("Failed to store data");
@@ -206,40 +202,29 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
   while (attempt < 60) {
     try {
       // Fetch ir_data created after the request time
-      const irDataRows: { data: string; created_at: string }[] = await new Promise((resolve, reject) => {
-        db.all<{ data: string; created_at: string }>(
-          "SELECT data, created_at FROM ir_data WHERE created_at >= strftime('%Y-%m-%d %H:%M:%S', ?)",
-          [requestTime.toISOString()],
-          (err, rows) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(rows);
+      const irDataRows: { data: string; created_at: string }[] =
+        await new Promise((resolve, reject) => {
+          db.all<{ data: string; created_at: string }>(
+            "SELECT data, created_at FROM ir_data WHERE created_at >= strftime('%Y-%m-%d %H:%M:%S', ?)",
+            [requestTime.toISOString()],
+            (err, rows) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(rows);
+              }
             }
-          }
-        );
-      });
+          );
+        });
 
-      // Group ir_data by data value
-      const dataCounts: { [data: string]: number } = {};
-      irDataRows.forEach((row) => {
-        dataCounts[row.data] = (dataCounts[row.data] || 0) + 1;
-      });
+      // pick the first data
+      const irData = irDataRows[0]?.data;
 
-      // Find data with at least 3 occurrences
-      let matchingData: string | null = null;
-      for (const data in dataCounts) {
-        if (dataCounts[data] >= 1) {
-          matchingData = data;
-          break;
-        }
-      }
-
-      if (matchingData) {
+      if (irData) {
         // Create button record
         db.run(
           "INSERT INTO buttons (remote_id, name, ir_data) VALUES (?, ?, ?)",
-          [remoteId, name, matchingData],
+          [remoteId, name, irData],
           function (err) {
             if (err) {
               console.error(err);
@@ -268,6 +253,13 @@ app.post("/remotes/:remote_id/buttons", async (req, res) => {
       return;
     }
   }
+
+  // truncate ir_data table
+  db.run("DELETE FROM ir_data", (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
 
   // Timeout error
   res.status(408).json({
