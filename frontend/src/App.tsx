@@ -17,7 +17,7 @@ function App() {
   }, []);
 
   const handleCreateRemote = () => {
-    const name = prompt("Enter remote name:");
+    const name = prompt("リモコン名を入力してください:");
     if (name) {
       api
         .createRemote(name)
@@ -71,7 +71,7 @@ function App() {
                                 .then(setRemotes);
                             }}
                           >
-                            Delete
+                            削除
                           </button>
                         </td>
                       </tr>

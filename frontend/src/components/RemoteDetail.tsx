@@ -46,9 +46,9 @@ function RemoteDetail() {
   return (
     <div className="my-4 container mx-auto">
       <div className="text-left mb-6">
-        <div className="flex items-center text-sm mb-2">
+        <div className="flex items-center text-xl mb-2">
           <Link to="/" className="text-blue-500 hover:text-blue-700">
-            Home
+            リモコン一覧
           </Link>
           <span className="mx-2">&gt;</span>
           <span className="font-medium">{remote.name}</span>
@@ -59,7 +59,7 @@ function RemoteDetail() {
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
           onClick={() => {
-            const name = prompt("Enter button name:");
+            const name = prompt("ボタン名を入力してください:");
             if (name && id) {
               if (name) {
                 api
@@ -79,7 +79,7 @@ function RemoteDetail() {
             }
           }}
         >
-          Register Button
+          ボタンを追加
         </button>
       </div>
       <table className="table-auto w-full">
@@ -100,7 +100,7 @@ function RemoteDetail() {
                     });
                   }}
                 >
-                  Send
+                  送信
                 </button>
               </td>
               <td className="px-4 py-4">
@@ -115,7 +115,7 @@ function RemoteDetail() {
                     });
                   }}
                 >
-                  Delete
+                  削除
                 </button>
               </td>
             </tr>
