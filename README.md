@@ -64,18 +64,34 @@ The frontend is built with React and TypeScript using Vite.
 
 ### ボタン登録
 
-1. ユーザがリモコン登録ボタンをクリック。
-2. フロントエンドがバックエンドにボタン登録リクエストを送信する。
-3. バックエンドはリクエスト受信以降に作成された赤外線データをポーリングする。
-4. ユーザはポーリング中に赤外線リモコンボタンを押す。
-5. 赤外線送受信サービスが受け取った赤外線データをbase64エンコードしてバックエンドに送信する。
-6. バックエンドは赤外線データをDBに保存する。
-7. 60回のポーリングの間にユーザが赤外線リモコンボタンを押さなかった場合、バックエンドはエラーメッセージを返す。
-8. 押した場合、バックエンドはボタンを作成し、フロントエンドに成功メッセージを返す。
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant DB
+    participant IRService
+    User ->> Frontend: ボタン登録を開始
+    Frontend ->> Backend: ボタン登録リクエスト
+    loop 60回
+        Backend ->> DB: 新規赤外線データをポーリング
+    end
+    User ->> IRService: 赤外線リモコンボタンを押す
+    IRService ->> Backend: 赤外線データを送信
+    Backend ->> DB: 赤外線データを保存
+    Backend ->> Frontend: 成功メッセージを返す
+```
 
 ### ボタン送信
 
-1. ユーザがボタンをクリック。
-2. フロントエンドがバックエンドにボタン送信リクエストを送信する。
-3. バックエンドはDBから赤外線データを取得し、赤外線送受信サービスに送信する。
-4. 赤外線送受信サービスは赤外線データをデコードし、赤外線リモコンに送信する。
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant IRService
+    User ->> Frontend: ボタンをクリック
+    Frontend ->> Backend: ボタン送信リクエスト
+    Backend ->> IRService: 赤外線データを送信
+    IRService ->> IRRemote: 赤外線データを送信
+```
