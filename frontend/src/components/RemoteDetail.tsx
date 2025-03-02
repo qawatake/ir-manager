@@ -44,73 +44,84 @@ function RemoteDetail() {
   }
 
   return (
-    <div className="text-center my-4">
-      <h2 className="text-2xl font-semibold">Remote: {remote.name}</h2>
-      <Link to="/" className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded inline-flex items-center">
-        <svg className="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm-3.7-4.8L8.3 10 6.3 6.8 5 5.5l-5 5 5 5 1.3-1.3 2-3.2z"/></svg>
-        Back to Remote List
-      </Link>
-      <h3>Buttons</h3>
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2"
-        onClick={() => {
-          const name = prompt("Enter button name:");
-          if (name && id) {
-            if (name) {
-              api
-                .createButton(parseInt(id), name)
-                .then(async () => {
-                  const buttonsData = await api.getButtons(parseInt(id));
-                  setButtons(buttonsData);
-                })
-                .catch((error: unknown) => {
-                  if (error instanceof Error && error.message) {
-                    alert(error.message);
-                  } else {
-                    alert("An unexpected error occurred.");
-                  }
-                });
-            }
-          }
-        }}
-      >
-        Register Button
-      </button>
-      <div className="max-w-md mx-auto">
-        {buttons.map((button) => (
-          <div
-            key={button.id}
-            className="flex items-center justify-between py-2 px-4 border-b m-2"
-          >
-            <span className="mr-4 w-1/3">{button.name}</span>
-            <button
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
-              onClick={() => {
-                api.sendIrData(button.id).catch((error: unknown) => {
-                  if (error instanceof Error && error.message) {
-                    alert(error.message);
-                  } else {
-                    alert("An unexpected error occurred.");
-                  }
-                });
-              }}
-            >
-              Send
-            </button>
-            <button
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => {
-                api.deleteButton(button.id).then(async () => {
-                  const buttonsData = await api.getButtons(parseInt(id || "0"));
-                  setButtons(buttonsData);
-                });
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        ))}
+    <div className="my-4 container mx-auto">
+      <div className="text-left mb-6">
+        <div className="flex items-center text-sm mb-2">
+          <Link to="/" className="text-blue-500 hover:text-blue-700">
+            Home
+          </Link>
+          <span className="mx-2">&gt;</span>
+          <span className="font-medium">{remote.name}</span>
+        </div>
+        <h1 className="text-3xl font-semibold">{remote.name}</h1>
       </div>
+      <div className="text-left">
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+          onClick={() => {
+            const name = prompt("Enter button name:");
+            if (name && id) {
+              if (name) {
+                api
+                  .createButton(parseInt(id), name)
+                  .then(async () => {
+                    const buttonsData = await api.getButtons(parseInt(id));
+                    setButtons(buttonsData);
+                  })
+                  .catch((error: unknown) => {
+                    if (error instanceof Error && error.message) {
+                      alert(error.message);
+                    } else {
+                      alert("An unexpected error occurred.");
+                    }
+                  });
+              }
+            }
+          }}
+        >
+          Register Button
+        </button>
+      </div>
+      <table className="table-auto w-full">
+        <tbody>
+          {buttons.map((button) => (
+            <tr key={button.id} className="border-b border-gray-300">
+              <td className="px-4 py-4">{button.name}</td>
+              <td className="px-4 py-4">
+                <button
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
+                  onClick={() => {
+                    api.sendIrData(button.id).catch((error: unknown) => {
+                      if (error instanceof Error && error.message) {
+                        alert(error.message);
+                      } else {
+                        alert("An unexpected error occurred.");
+                      }
+                    });
+                  }}
+                >
+                  Send
+                </button>
+              </td>
+              <td className="px-4 py-4">
+                <button
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={() => {
+                    api.deleteButton(button.id).then(async () => {
+                      const buttonsData = await api.getButtons(
+                        parseInt(id || "0")
+                      );
+                      setButtons(buttonsData);
+                    });
+                  }}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
